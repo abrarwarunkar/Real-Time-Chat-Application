@@ -10,30 +10,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_USER: testuser
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+
       
-      redis:
-        image: redis:7
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
+
 
     steps:
     - uses: actions/checkout@v4
@@ -52,15 +31,8 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     
     - name: Run tests
-      run: mvn clean test
+      run: mvn clean test -Dspring.profiles.active=test
       env:
-        DB_HOST: localhost
-        DB_PORT: 5432
-        DB_NAME: testdb
-        DB_USERNAME: testuser
-        DB_PASSWORD: testpass
-        REDIS_HOST: localhost
-        REDIS_PORT: 6379
         JWT_SECRET: testSecretKey123456789012345678901234567890
 
   build-and-push:
