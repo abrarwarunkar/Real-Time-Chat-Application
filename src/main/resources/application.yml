@@ -5,6 +5,8 @@ server:
 spring:
   application:
     name: chat-app
+  main:
+    allow-circular-references: true
   
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:chatdb}
@@ -43,12 +45,20 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      linger-ms: 5
     consumer:
       group-id: chat-app
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
       properties:
-        spring.json.trusted.packages: "com.example.chat.dto"
+        spring.json.trusted.packages: "com.example.chat.dto,com.example.chat.dto.events"
+    listener:
+      ack-mode: manual_immediate
 
 management:
   endpoints:
@@ -79,6 +89,25 @@ app:
   rate-limit:
     enabled: true
     requests-per-minute: 60
+  
+  presence:
+    heartbeat-interval: 30000  # 30 seconds
+    timeout: 300000  # 5 minutes
+  
+  redis:
+    pub-sub:
+      enabled: true
+      message-channel: chat.messages
+      presence-channel: user.presence
+      typing-channel: chat.typing
+  
+  kafka:
+    events:
+      enabled: ${KAFKA_EVENTS_ENABLED:true}
+      message-topic: chat.message.events
+      user-topic: chat.user.events
+      conversation-topic: chat.conversation.events
+      notification-topic: chat.notification.events
 
 logging:
   level:

@@ -1,6 +1,21 @@
 # Real-Time Chat Application
 
+[![Java](https://img.shields.io/badge/Java-17-orange)](https://openjdk.java.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7-red)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
 A production-grade real-time chat application built with Java Spring Boot, featuring 1:1 and group chats, presence tracking, message delivery receipts, offline message delivery, and media attachments.
+
+## 📚 Documentation
+
+- **[System Design](SYSTEM_DESIGN.md)**: Detailed architecture, data flow, and design decisions
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)**: Production deployment, scaling, and monitoring
+- **[Docker Commands](docker-commands.txt)**: Complete list of Docker terminal commands
+- **[Postman Collection](postman_collection.json)**: API testing collection with all endpoints
 
 ## Architecture Overview
 
@@ -35,22 +50,25 @@ A production-grade real-time chat application built with Java Spring Boot, featu
 
 ## Features
 
-### Core Features
+### Core Features ✅
 - **Authentication & Authorization**: JWT-based auth with refresh tokens
 - **Real-time Messaging**: WebSocket (STOMP) with SockJS fallback
 - **1:1 and Group Chats**: Direct messages and group conversations
-- **Message Status**: Sent, Delivered, Read receipts
-- **Presence Tracking**: Online/offline status with Redis
+- **Message Status**: ✔ Sent, ✔✔ Delivered, ✔✔✔ Read receipts
+- **Presence Tracking**: Online/offline status with Redis heartbeat
 - **Typing Indicators**: Real-time typing notifications
 - **Offline Message Delivery**: Queue messages for offline users
-- **Media Attachments**: File upload to S3-compatible storage (MinIO)
+- **Media Attachments**: Secure file upload to S3-compatible storage (MinIO)
 
-### Advanced Features
+### Advanced Features ✅
 - **Multi-instance Support**: Redis pub/sub for horizontal scaling
-- **Message Persistence**: PostgreSQL with pagination
-- **Event Streaming**: Optional Kafka integration for analytics
-- **Rate Limiting**: Configurable request throttling
-- **Health Monitoring**: Spring Actuator endpoints
+- **Message Persistence**: PostgreSQL with optimized indexes
+- **Event Streaming**: Kafka integration for analytics and notifications
+- **Rate Limiting**: Bucket4j-based API protection
+- **Security Audit**: Failed login tracking and account lockout
+- **Enhanced File Security**: Hash validation and type checking
+- **Production Monitoring**: Prometheus + Grafana integration
+- **Health Monitoring**: Comprehensive Spring Actuator endpoints
 - **Graceful Shutdown**: Proper connection cleanup
 
 ## Tech Stack
@@ -71,11 +89,14 @@ A production-grade real-time chat application built with Java Spring Boot, featu
 - **HTTP Client**: Axios with interceptors
 - **State Management**: React hooks and context
 
-### DevOps
-- **Containerization**: Docker, Docker Compose
-- **Orchestration**: Kubernetes with Ingress
+### DevOps ✅
+- **Containerization**: Docker, Docker Compose with production overrides
+- **Orchestration**: Kubernetes with Ingress and HPA
 - **CI/CD**: GitHub Actions
-- **Reverse Proxy**: Nginx
+- **Reverse Proxy**: Nginx with SSL termination
+- **Monitoring**: Prometheus, Grafana, and custom metrics
+- **Clustering**: Redis Cluster and Kafka Cluster support
+- **Load Balancing**: Multi-instance deployment ready
 
 ## Quick Start
 
@@ -137,6 +158,15 @@ docker-compose down
 ```
 
 ## API Documentation
+
+### Postman Collection
+
+Import the provided [`postman_collection.json`](postman_collection.json) to test all API endpoints. The collection includes:
+
+- Authentication workflows (register, login, refresh)
+- Chat operations (conversations, messages, file uploads)
+- Pre-configured environment variables
+- Example requests with proper headers and payloads
 
 ### Authentication Endpoints
 

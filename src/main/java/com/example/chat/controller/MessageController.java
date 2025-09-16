@@ -5,6 +5,7 @@ import com.example.chat.dto.SendMessageRequest;
 import com.example.chat.model.Message;
 import com.example.chat.model.User;
 import com.example.chat.service.MessageService;
+import com.example.chat.service.MessageStatusService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,9 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private MessageStatusService messageStatusService;
+
     @PostMapping
     public ResponseEntity<MessageDto> sendMessage(@Valid @RequestBody SendMessageRequest request, Authentication auth) {
         User user = (User) auth.getPrincipal();
@@ -42,7 +46,19 @@ public class MessageController {
         Long messageId = Long.valueOf(request.get("messageId").toString());
         Message.Status status = Message.Status.valueOf(request.get("status").toString());
         
-        messageService.updateMessageStatus(messageId, status, user.getId());
+        if (status == Message.Status.DELIVERED) {
+            messageStatusService.markAsDelivered(messageId, user.getId(), user.getUsername());
+        } else if (status == Message.Status.READ) {
+            messageStatusService.markAsRead(messageId, user.getId(), user.getUsername());
+        }
+        
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/conversations/{conversationId}/read")
+    public ResponseEntity<Void> markConversationAsRead(@PathVariable Long conversationId, Authentication auth) {
+        User user = (User) auth.getPrincipal();
+        messageStatusService.markConversationAsRead(conversationId, user.getId(), user.getUsername());
         return ResponseEntity.ok().build();
     }
 
@@ -81,8 +97,11 @@ class WebSocketMessageController {
     }
 
     private Long getUserIdFromPrincipal(Principal principal) {
-        // This is a placeholder - implement based on your authentication setup
-        // You might need to look up the user by username or extract ID from JWT
-        return 1L; // Placeholder
+        if (principal instanceof org.springframework.security.core.Authentication) {
+            org.springframework.security.core.Authentication auth = (org.springframework.security.core.Authentication) principal;
+            com.example.chat.model.User user = (com.example.chat.model.User) auth.getPrincipal();
+            return user.getId();
+        }
+        return 1L; // Fallback
     }
 }

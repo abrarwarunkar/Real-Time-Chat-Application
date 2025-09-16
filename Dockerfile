@@ -16,7 +16,8 @@ WORKDIR /app
 
 COPY --from=build /app/target/chat-app-*.jar app.jar
 
-RUN chown -R appuser:appgroup /app
+RUN apk add --no-cache curl && \
+    chown -R appuser:appgroup /app
 
 USER appuser
 

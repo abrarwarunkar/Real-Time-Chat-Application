@@ -2,6 +2,7 @@ package com.example.chat.websocket;
 
 import com.example.chat.model.User;
 import com.example.chat.service.MessageService;
+import com.example.chat.service.PresenceService;
 import com.example.chat.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ public class WebSocketEventListener {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private PresenceService presenceService;
+
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -36,8 +40,7 @@ public class WebSocketEventListener {
             // Set user online and deliver offline messages
             User userEntity = userService.findByUsername(user.getName()).orElse(null);
             if (userEntity != null) {
-                userService.setUserOnline(userEntity.getId());
-                messageService.deliverOfflineMessages(userEntity.getId());
+                presenceService.setUserOnline(userEntity.getId(), userEntity.getUsername());
             }
         }
     }
@@ -53,7 +56,7 @@ public class WebSocketEventListener {
             // Set user offline
             User userEntity = userService.findByUsername(user.getName()).orElse(null);
             if (userEntity != null) {
-                userService.setUserOffline(userEntity.getId());
+                presenceService.setUserOffline(userEntity.getId(), userEntity.getUsername());
             }
         }
     }

@@ -14,9 +14,11 @@ const MessageList = ({ messages, typingUsers }) => {
   };
 
   const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    // Assume timestamp is in UTC from server
+    const date = new Date(timestamp + 'Z');
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 

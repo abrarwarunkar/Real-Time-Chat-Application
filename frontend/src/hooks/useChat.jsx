@@ -87,7 +87,7 @@ export const useChat = () => {
     }
   };
 
-  const sendMessage = useCallback(async (content, type = 'TEXT', attachmentUrl = null, mimeType = null) => {
+  const sendMessage = useCallback((content, type = 'TEXT', attachmentUrl = null, mimeType = null) => {
     if (!currentConversation) return;
 
     const messageData = {
@@ -98,14 +98,8 @@ export const useChat = () => {
       mimeType,
     };
 
-    try {
-      // Always use HTTP API to ensure message is saved and broadcast properly
-      const response = await messageAPI.sendMessage(messageData);
-      // Don't add message locally - let WebSocket broadcast handle it
-      // This ensures both users see the message via the same mechanism
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    }
+    // Send message via WebSocket - backend will save and broadcast
+    websocketService.sendMessage(currentConversation.id, messageData);
   }, [currentConversation]);
 
   const sendTypingIndicator = useCallback((typing) => {
@@ -137,12 +131,18 @@ export const useChat = () => {
   };
 
   const handleNewMessage = (message) => {
-    setMessages(prev => [...prev, message]);
-    
+    setMessages(prev => {
+      // Avoid duplicates by checking if message already exists
+      if (prev.some(m => m.id === message.id)) {
+        return prev;
+      }
+      return [...prev, message];
+    });
+
     // Update conversation list
-    setConversations(prev => 
-      prev.map(conv => 
-        conv.id === message.conversationId 
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === message.conversationId
           ? { ...conv, lastMessage: message, updatedAt: message.createdAt }
           : conv
       ).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))

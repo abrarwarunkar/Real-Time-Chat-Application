@@ -1,6 +1,8 @@
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
 
+const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL + '/api' : '/api';
+
 class WebSocketService {
   constructor() {
     this.stompClient = null;
@@ -10,7 +12,7 @@ class WebSocketService {
 
   connect(token) {
     return new Promise((resolve, reject) => {
-      const socket = new SockJS('/ws');
+      const socket = new SockJS(API_BASE + '/ws');
       this.stompClient = Stomp.over(socket);
       
       this.stompClient.connect(

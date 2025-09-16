@@ -1,0 +1,304 @@
+# Docker Commands for Real-Time Chat Application
+# This file contains all terminal commands to manage the backend and frontend services
+
+# =============================================================================
+# START COMMANDS
+# =============================================================================
+
+# Start all services (backend, frontend, database, cache, message queue)
+docker-compose up -d
+
+# Start backend services only (app, postgres, redis, minio, kafka)
+docker-compose up -d postgres redis minio kafka app
+
+# Start frontend service only
+docker-compose up -d frontend
+
+# Start infrastructure services only (postgres, redis, minio, kafka)
+docker-compose up -d postgres redis minio kafka
+
+# =============================================================================
+# STOP COMMANDS
+# =============================================================================
+
+# Stop all services
+docker-compose down
+
+# Stop backend services
+docker-compose stop app postgres redis minio kafka
+
+# Stop frontend service
+docker-compose stop frontend
+
+# =============================================================================
+# RESTART COMMANDS
+# =============================================================================
+
+# Restart all services
+docker-compose restart
+
+# Restart backend services
+docker-compose restart app postgres redis minio kafka
+
+# Restart frontend service
+docker-compose restart frontend
+
+# =============================================================================
+# LOGS COMMANDS
+# =============================================================================
+
+# View logs for all services (follow mode, press Ctrl+C to exit)
+docker-compose logs -f
+
+# View backend logs only
+docker-compose logs -f app
+
+# View frontend logs only
+docker-compose logs -f frontend
+
+# View database logs only
+docker-compose logs -f postgres
+
+# View Redis logs only
+docker-compose logs -f redis
+
+# View MinIO logs only
+docker-compose logs -f minio
+
+# View Kafka logs only
+docker-compose logs -f kafka
+
+# =============================================================================
+# BUILD COMMANDS
+# =============================================================================
+
+# Build all Docker images (no cache)
+docker-compose build --no-cache
+
+# Build backend image only
+docker-compose build --no-cache app
+
+# Build frontend image only
+docker-compose build --no-cache frontend
+
+# =============================================================================
+# STATUS AND MONITORING COMMANDS
+# =============================================================================
+
+# Check status of all services
+docker-compose ps
+
+# Check running containers
+docker ps
+
+# Check Docker system usage
+docker system df
+
+# =============================================================================
+# CLEANUP COMMANDS
+# =============================================================================
+
+# Stop and remove all containers
+docker-compose down
+
+# Remove all containers, networks, and volumes
+docker-compose down -v --remove-orphans
+
+# Remove unused Docker images
+docker image prune -f
+
+# Remove unused Docker volumes
+docker volume prune -f
+
+# Remove unused Docker networks
+docker network prune -f
+
+# Complete Docker system cleanup
+docker system prune -f
+
+# =============================================================================
+# INDIVIDUAL SERVICE MANAGEMENT
+# =============================================================================
+
+# Start specific service
+docker-compose up -d [service-name]
+
+# Stop specific service
+docker-compose stop [service-name]
+
+# Restart specific service
+docker-compose restart [service-name]
+
+# View logs for specific service
+docker-compose logs -f [service-name]
+
+# Execute command in running container
+docker-compose exec [service-name] [command]
+
+# =============================================================================
+# DEVELOPMENT COMMANDS
+# =============================================================================
+
+# Run backend in development mode (with live reload)
+mvn spring-boot:run
+
+# Run frontend in development mode (with hot reload)
+cd frontend && npm run dev
+
+# Run tests
+mvn test
+
+# Run integration tests
+mvn verify
+
+# =============================================================================
+# PRODUCTION COMMANDS
+# =============================================================================
+
+# Use production docker-compose file
+docker-compose -f docker-compose.prod.yml up -d
+
+# Build for production
+docker-compose -f docker-compose.prod.yml build --no-cache
+
+# Scale services (example: scale app to 3 instances)
+docker-compose up -d --scale app=3
+
+# =============================================================================
+# TROUBLESHOOTING COMMANDS
+# =============================================================================
+
+# Check container resource usage
+docker stats
+
+# Inspect container
+docker inspect [container-name]
+
+# Check container logs with timestamps
+docker-compose logs -f -t [service-name]
+
+# Check container health
+curl http://localhost:8080/actuator/health
+
+# Test database connection
+docker-compose exec postgres psql -U chatuser -d chatdb
+
+# Test Redis connection
+docker-compose exec redis redis-cli ping
+
+# Test MinIO connection
+curl http://localhost:9000/minio/health/live
+
+# =============================================================================
+# BACKUP AND RECOVERY
+# =============================================================================
+
+# Backup PostgreSQL database
+docker-compose exec postgres pg_dump -U chatuser chatdb > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Backup Redis data
+docker-compose exec redis redis-cli SAVE
+
+# Backup MinIO data (if using local storage)
+docker cp $(docker-compose ps -q minio):/data ./minio_backup
+
+# =============================================================================
+# NETWORKING COMMANDS
+# =============================================================================
+
+# List Docker networks
+docker network ls
+
+# Inspect network
+docker network inspect chat-network
+
+# Connect container to network
+docker network connect chat-network [container-name]
+
+# Disconnect container from network
+docker network disconnect chat-network [container-name]
+
+# =============================================================================
+# VOLUME MANAGEMENT
+# =============================================================================
+
+# List Docker volumes
+docker volume ls
+
+# Inspect volume
+docker volume inspect [volume-name]
+
+# Remove specific volume
+docker volume rm [volume-name]
+
+# =============================================================================
+# USEFUL ALIASES (add to ~/.bashrc or ~/.zshrc)
+# =============================================================================
+
+# alias dcup='docker-compose up -d'
+# alias dcdown='docker-compose down'
+# alias dclogs='docker-compose logs -f'
+# alias dcps='docker-compose ps'
+# alias dcrestart='docker-compose restart'
+
+# =============================================================================
+# QUICK START GUIDE
+# =============================================================================
+
+# 1. Start all services
+docker-compose up -d
+
+# 2. Check if everything is running
+docker-compose ps
+
+# 3. View logs if needed
+docker-compose logs -f
+
+# 4. Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8080
+# MinIO Console: http://localhost:9001
+
+# 5. Stop all services when done
+docker-compose down
+
+# =============================================================================
+# SERVICE PORTS REFERENCE
+# =============================================================================
+
+# Frontend: 3000
+# Backend API: 8080
+# PostgreSQL: 5432
+# Redis: 6379
+# MinIO API: 9000
+# MinIO Console: 9001
+# Kafka: 9092
+# Zookeeper: 2181
+# Kafka UI: 8081
+
+# =============================================================================
+# ENVIRONMENT VARIABLES REFERENCE
+# =============================================================================
+
+# Database
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=chatdb
+# DB_USERNAME=chatuser
+# DB_PASSWORD=chatpass
+
+# Redis
+# REDIS_HOST=localhost
+# REDIS_PORT=6379
+
+# MinIO
+# MINIO_ENDPOINT=http://localhost:9000
+# MINIO_ACCESS_KEY=minioadmin
+# MINIO_SECRET_KEY=minioadmin
+
+# JWT
+# JWT_SECRET=your-secret-key-here
+
+# Kafka (optional)
+# KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+# KAFKA_EVENTS_ENABLED=true

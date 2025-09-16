@@ -22,4 +22,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     long countUnreadMessages(@Param("conversationId") Long conversationId, @Param("lastReadMessageId") Long lastReadMessageId, @Param("userId") Long userId);
     
     void deleteByConversationId(Long conversationId);
+    
+    @Query("SELECT m FROM Message m WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.status != 'READ' AND m.deleted = false")
+    List<Message> findUnreadMessagesByConversationAndNotSender(@Param("conversationId") Long conversationId, @Param("userId") Long userId);
 }

@@ -40,6 +40,12 @@ public class MessageService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired(required = false)
+    private EventPublisher eventPublisher;
+
+    @Autowired
+    private PresenceService presenceService;
+
     private static final String OFFLINE_MESSAGES_KEY = "offline_messages:";
 
     @Transactional
@@ -71,8 +77,25 @@ public class MessageService {
 
         MessageDto messageDto = new MessageDto(message);
 
-        // Send real-time message to conversation members
+        // Send real-time message to online users
         sendRealTimeMessage(conversation.getId(), messageDto);
+
+        // Publish to Redis for real-time delivery across instances
+        if (eventPublisher != null) {
+            eventPublisher.publishMessageToRedis(conversation.getId(), messageDto);
+
+            // Publish message event to Kafka
+            eventPublisher.publishMessageEvent(new com.example.chat.dto.events.MessageEvent(
+                com.example.chat.dto.events.MessageEvent.Type.MESSAGE_SENT,
+                message.getId(),
+                conversation.getId(),
+                senderId,
+                sender.getUsername(),
+                message.getContent(),
+                message.getType(),
+                message.getStatus()
+            ));
+        }
 
         // Handle offline message delivery
         handleOfflineMessageDelivery(conversation.getId(), messageDto, senderId);
@@ -100,6 +123,26 @@ public class MessageService {
                 "/queue/message-status",
                 messageDto
         );
+
+        // Publish status event to Kafka
+        com.example.chat.dto.events.MessageEvent.Type eventType = switch (status) {
+            case DELIVERED -> com.example.chat.dto.events.MessageEvent.Type.MESSAGE_DELIVERED;
+            case READ -> com.example.chat.dto.events.MessageEvent.Type.MESSAGE_READ;
+            default -> null;
+        };
+        
+        if (eventType != null && eventPublisher != null) {
+            eventPublisher.publishMessageEvent(new com.example.chat.dto.events.MessageEvent(
+                eventType,
+                message.getId(),
+                message.getConversation().getId(),
+                message.getSender().getId(),
+                message.getSender().getUsername(),
+                message.getContent(),
+                message.getType(),
+                status
+            ));
+        }
     }
 
     public void sendTypingIndicator(Long conversationId, Long userId, boolean typing) {
@@ -111,8 +154,23 @@ public class MessageService {
         User user = userService.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        TypingIndicator indicator = new TypingIndicator(user.getUsername(), typing);
-        messagingTemplate.convertAndSend("/topic/conversations/" + conversationId + "/typing", indicator);
+        // Broadcast typing indicator via WebSocket
+        messagingTemplate.convertAndSend("/topic/conversations/" + conversationId + "/typing",
+            new TypingIndicator(user.getUsername(), typing));
+
+        // Publish typing indicator to Redis for multi-instance support
+        if (eventPublisher != null) {
+            eventPublisher.publishTypingToRedis(conversationId, userId, user.getUsername(), typing);
+
+            // Publish typing event to Kafka
+            com.example.chat.dto.events.PresenceEvent.Type eventType = typing ?
+                com.example.chat.dto.events.PresenceEvent.Type.USER_TYPING :
+                com.example.chat.dto.events.PresenceEvent.Type.USER_STOP_TYPING;
+
+            eventPublisher.publishPresenceEvent(new com.example.chat.dto.events.PresenceEvent(
+                eventType, userId, user.getUsername(), conversationId
+            ));
+        }
     }
 
     private void sendRealTimeMessage(Long conversationId, MessageDto messageDto) {
@@ -162,14 +220,14 @@ public class MessageService {
     private List<Long> getOnlineMembers(Long conversationId) {
         return memberRepository.findByConversationId(conversationId).stream()
                 .map(member -> member.getUser().getId())
-                .filter(userService::isUserOnline)
+                .filter(presenceService::isUserOnline)
                 .toList();
     }
 
     private List<Long> getOfflineMembers(Long conversationId, Long excludeUserId) {
         return memberRepository.findOtherMembers(conversationId, excludeUserId).stream()
                 .map(member -> member.getUser().getId())
-                .filter(userId -> !userService.isUserOnline(userId))
+                .filter(userId -> !presenceService.isUserOnline(userId))
                 .toList();
     }
 
