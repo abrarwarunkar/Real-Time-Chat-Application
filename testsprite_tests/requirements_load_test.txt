@@ -1,4 +1,0 @@
-websockets==11.0.3
-aiohttp==3.8.5
-asyncio-mqtt==0.13.1
-locust==2.15.1
