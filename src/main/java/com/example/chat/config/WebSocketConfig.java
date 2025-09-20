@@ -28,6 +28,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
               .setTaskScheduler(taskScheduler());
         config.setApplicationDestinationPrefixes("/app");
         config.setUserDestinationPrefix("/user");
+
+        // Performance optimizations for low latency
+        config.setCacheLimit(1024); // Increase cache for better performance
+        config.setPreservePublishOrder(true); // Ensure message ordering
     }
 
     @Bean

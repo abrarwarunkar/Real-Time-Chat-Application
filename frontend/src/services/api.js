@@ -34,6 +34,12 @@ api.interceptors.response.use(
           window.location.href = '/login';
         }
       }
+    } else if (error.response?.status === 403) {
+      // Forbidden - likely authentication issue, redirect to login
+      console.log('403 Forbidden error - redirecting to login');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

@@ -1,0 +1,164 @@
+{
+  "meta": {
+    "project": "Real-Time Chat Application",
+    "date": "2025-09-13",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "A production-grade real-time chat application providing secure authentication, real-time 1:1 and group messaging, presence tracking, message delivery receipts, offline message handling, and media file attachments, designed with scalability, security, and responsive user experience in mind.",
+  "core_goals": [
+    "Enable secure user authentication with JWT and refresh tokens",
+    "Support real-time messaging for individual and group conversations using WebSocket",
+    "Provide message status tracking including sent, delivered, and read receipts",
+    "Implement presence tracking to show online/offline statuses and typing indicators",
+    "Enable offline message delivery and queueing for seamless user experience",
+    "Support media attachments through secure file uploads with validation",
+    "Ensure high scalability and multi-instance support with Redis pub/sub and Kafka event streaming",
+    "Maintain robust security with rate limiting, input validation, and encrypted communications",
+    "Facilitate production readiness with monitoring, health checks, and graceful shutdown",
+    "Deliver a modern, responsive WhatsApp-like user interface for seamless chat interactions"
+  ],
+  "key_features": [
+    "JWT-based authentication system with user registration, login, and token refresh",
+    "WebSocket (STOMP over SockJS) real-time messaging supporting 1:1 and group chats",
+    "Group chat management with member addition/removal and role assignment",
+    "Message status tracking showing sent, delivered, and read receipts in real time",
+    "Presence tracking leveraging Redis for online/offline status and typing indicators",
+    "Offline message queuing and delivery upon user reconnection",
+    "Secure file upload system using MinIO with file type and size validation",
+    "Modern chat UI built with React, Vite, and TailwindCSS featuring message bubbles and responsive design",
+    "PostgreSQL database with JPA/Hibernate and Flyway for schema migrations",
+    "Kafka integration for event streaming to support analytics and notifications",
+    "Rate limiting and security features using Spring Security and Bucket4j",
+    "Comprehensive API with RESTful endpoints and WebSocket integration",
+    "Containerized deployment with Docker and Kubernetes orchestration",
+    "Production monitoring via Prometheus, Grafana and Spring Actuator endpoints"
+  ],
+  "user_flow_summary": [
+    "User registers via the registration API and receives JWT tokens for authentication",
+    "User logs in and obtains access and refresh tokens for session management",
+    "Upon login, user establishes a WebSocket connection authenticated by JWT token",
+    "User creates or joins 1:1 or group conversations through REST APIs",
+    "User sends and receives messages in real time via WebSocket subscriptions",
+    "Message statuses update dynamically for sent, delivered, and read events",
+    "Users see presence indicators showing online/offline status and typing notifications in conversations",
+    "User uploads media files which are validated and stored securely and URLs returned for chat display",
+    "Offline messages are queued and delivered when the user comes online again",
+    "Users manage group members via group member modals, adding or removing participants",
+    "Application monitors API rate limits to prevent abuse and applies security policies constantly",
+    "System health, metrics, and logs are accessible by administrators for monitoring and troubleshooting",
+    "Scaling horizontally is seamless using Redis pub/sub and Kubernetes auto-scaling"
+  ],
+  "validation_criteria": [
+    "Users can successfully register and log in, receiving valid JWT tokens and refresh tokens",
+    "WebSocket connections authenticate correctly and support bi-directional real-time messaging",
+    "Messages sent appear instantly to recipients with accurate status updates (sent, delivered, read)",
+    "Presence indicators correctly reflect user online/offline and typing states in real time",
+    "Group chat creation and member management APIs work correctly and update conversations accordingly",
+    "Files uploaded are validated for type and size before storage and accessible via secure links",
+    "Offline messages queue properly and deliver upon user reconnection without loss or duplication",
+    "Rate limiting enforces request throttling and prevents abuse as configured",
+    "Application exposes health check endpoints with accurate status reports",
+    "Monitoring tools capture and visualize application metrics including performance and errors",
+    "API endpoints enforce proper authentication and authorization with appropriate status codes on failures",
+    "Horizontal scaling does not disrupt message delivery or presence tracking",
+    "UI displays consistent, responsive chat interface across devices and browsers"
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "Java",
+      "Spring Boot",
+      "PostgreSQL",
+      "Redis",
+      "Kafka",
+      "WebSocket",
+      "JWT",
+      "React",
+      "Vite",
+      "Tailwind CSS",
+      "Axios",
+      "MinIO"
+    ],
+    "features": [
+      {
+        "name": "Authentication System",
+        "description": "User registration, login, and JWT-based authentication with refresh tokens",
+        "files": [
+          "src/main/java/com/example/chat/security/JwtAuthenticationFilter.java",
+          "src/main/java/com/example/chat/security/JwtUtil.java",
+          "src/main/java/com/example/chat/controller/AuthController.java",
+          "src/main/java/com/example/chat/service/AuthService.java",
+          "frontend/src/hooks/useAuth.jsx",
+          "frontend/src/components/Auth.jsx"
+        ]
+      },
+      {
+        "name": "Real-time Messaging",
+        "description": "WebSocket-based real-time messaging with message status tracking",
+        "files": [
+          "src/main/java/com/example/chat/websocket/WebSocketConfig.java",
+          "src/main/java/com/example/chat/websocket/WebSocketEventListener.java",
+          "src/main/java/com/example/chat/service/MessageService.java",
+          "frontend/src/services/websocket.js",
+          "frontend/src/hooks/useChat.jsx"
+        ]
+      },
+      {
+        "name": "Group Chat System",
+        "description": "Create and manage group conversations with member management",
+        "files": [
+          "src/main/java/com/example/chat/model/Conversation.java",
+          "src/main/java/com/example/chat/model/ConversationMember.java",
+          "src/main/java/com/example/chat/service/ConversationService.java",
+          "frontend/src/components/GroupCreationModal.jsx",
+          "frontend/src/components/GroupMemberModal.jsx"
+        ]
+      },
+      {
+        "name": "File Upload System",
+        "description": "Secure file upload with MinIO storage and type validation",
+        "files": [
+          "src/main/java/com/example/chat/service/FileService.java",
+          "src/main/java/com/example/chat/controller/FileController.java",
+          "frontend/src/services/api.js"
+        ]
+      },
+      {
+        "name": "User Management",
+        "description": "User search, presence tracking, and profile management",
+        "files": [
+          "src/main/java/com/example/chat/model/User.java",
+          "src/main/java/com/example/chat/service/UserService.java",
+          "src/main/java/com/example/chat/service/PresenceService.java",
+          "frontend/src/services/api.js"
+        ]
+      },
+      {
+        "name": "WhatsApp-like UI",
+        "description": "Modern chat interface with message bubbles and responsive design",
+        "files": [
+          "frontend/src/components/Chat.jsx",
+          "frontend/src/components/MessageList.jsx",
+          "frontend/src/components/MessageInput.jsx",
+          "frontend/src/components/ConversationList.jsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "name": "Database Layer",
+        "description": "PostgreSQL with JPA/Hibernate and Flyway migrations",
+        "files": [
+          "src/main/resources/db/migration/",
+          "src/main/java/com/example/chat/repository/"
+        ]
+      },
+      {
+        "name": "Security & Configuration",
+        "description": "Spring Security, CORS, rate limiting, and application configuration",
+        "files": [
+          "src/main/java/com/example/chat/config/",
+          "src/main/resources/application.yml"
+        ]
+      }
+    ]
+  }
+}

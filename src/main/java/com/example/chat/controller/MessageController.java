@@ -34,10 +34,10 @@ public class MessageController {
     private MessageStatusService messageStatusService;
 
     @PostMapping
-    public ResponseEntity<MessageDto> sendMessage(@Valid @RequestBody SendMessageRequest request, Authentication auth) {
+    public java.util.concurrent.CompletableFuture<ResponseEntity<MessageDto>> sendMessage(@Valid @RequestBody SendMessageRequest request, Authentication auth) {
         User user = (User) auth.getPrincipal();
-        MessageDto message = messageService.sendMessage(request, user.getId());
-        return ResponseEntity.ok(message);
+        return messageService.sendMessage(request, user.getId())
+                .thenApply(message -> ResponseEntity.ok(message));
     }
 
     @PostMapping("/status")

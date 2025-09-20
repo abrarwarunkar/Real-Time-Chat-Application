@@ -49,7 +49,8 @@ public class MessageService {
     private static final String OFFLINE_MESSAGES_KEY = "offline_messages:";
 
     @Transactional
-    public MessageDto sendMessage(SendMessageRequest request, Long senderId) {
+    @org.springframework.scheduling.annotation.Async("messageExecutor")
+    public java.util.concurrent.CompletableFuture<MessageDto> sendMessage(SendMessageRequest request, Long senderId) {
         // Verify user is member of conversation
         if (!memberRepository.existsByConversationIdAndUserId(request.getConversationId(), senderId)) {
             throw new RuntimeException("Access denied");
@@ -100,7 +101,7 @@ public class MessageService {
         // Handle offline message delivery
         handleOfflineMessageDelivery(conversation.getId(), messageDto, senderId);
 
-        return messageDto;
+        return java.util.concurrent.CompletableFuture.completedFuture(messageDto);
     }
 
     @Transactional

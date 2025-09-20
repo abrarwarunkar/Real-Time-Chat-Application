@@ -14,26 +14,33 @@ class WebSocketService {
     return new Promise((resolve, reject) => {
       const socket = new SockJS(API_BASE + '/ws');
       this.stompClient = Stomp.over(socket);
-      
+
+      // Disable debug logs in production
+      this.stompClient.debug = null;
+
       this.stompClient.connect(
         { Authorization: `Bearer ${token}` },
         (frame) => {
-          this.connected = true;
           console.log('WebSocket connected:', frame);
-          
-          // Subscribe to offline messages
-          this.subscribe('/user/queue/offline-messages', (message) => {
-            const data = JSON.parse(message.body);
-            this.onMessage?.(data);
-          });
 
-          // Subscribe to message status updates
-          this.subscribe('/user/queue/message-status', (message) => {
-            const data = JSON.parse(message.body);
-            this.onMessageStatus?.(data);
-          });
+          // Wait a bit for the connection to be fully established
+          setTimeout(() => {
+            this.connected = true;
 
-          resolve();
+            // Subscribe to offline messages
+            this.subscribe('/user/queue/offline-messages', (message) => {
+              const data = JSON.parse(message.body);
+              this.onMessage?.(data);
+            });
+
+            // Subscribe to message status updates
+            this.subscribe('/user/queue/message-status', (message) => {
+              const data = JSON.parse(message.body);
+              this.onMessageStatus?.(data);
+            });
+
+            resolve();
+          }, 100);
         },
         (error) => {
           this.connected = false;
@@ -53,10 +60,18 @@ class WebSocketService {
   }
 
   subscribe(destination, callback) {
-    if (this.stompClient && this.connected) {
-      const subscription = this.stompClient.subscribe(destination, callback);
-      this.subscriptions.set(destination, subscription);
-      return subscription;
+    if (this.stompClient && this.connected && this.stompClient.connected) {
+      try {
+        const subscription = this.stompClient.subscribe(destination, callback);
+        this.subscriptions.set(destination, subscription);
+        return subscription;
+      } catch (error) {
+        console.error('Failed to subscribe to', destination, error);
+        return null;
+      }
+    } else {
+      console.warn('Cannot subscribe - WebSocket not connected');
+      return null;
     }
   }
 
@@ -69,6 +84,11 @@ class WebSocketService {
   }
 
   subscribeToConversation(conversationId, callbacks = {}) {
+    if (!this.connected || !this.stompClient?.connected) {
+      console.warn('Cannot subscribe to conversation - WebSocket not connected');
+      return;
+    }
+
     const destinations = {
       messages: `/topic/conversations/${conversationId}`,
       typing: `/topic/conversations/${conversationId}/typing`,
@@ -76,10 +96,18 @@ class WebSocketService {
     };
 
     Object.entries(destinations).forEach(([type, destination]) => {
-      this.subscribe(destination, (message) => {
-        const data = JSON.parse(message.body);
-        callbacks[type]?.(data);
+      const subscription = this.subscribe(destination, (message) => {
+        try {
+          const data = JSON.parse(message.body);
+          callbacks[type]?.(data);
+        } catch (error) {
+          console.error('Failed to parse WebSocket message:', error);
+        }
       });
+
+      if (!subscription) {
+        console.warn(`Failed to subscribe to ${type} for conversation ${conversationId}`);
+      }
     });
   }
 
@@ -94,22 +122,34 @@ class WebSocketService {
   }
 
   sendMessage(conversationId, message) {
-    if (this.stompClient && this.connected) {
-      this.stompClient.send(
-        `/app/conversations/${conversationId}/send`,
-        {},
-        JSON.stringify(message)
-      );
+    if (this.stompClient && this.connected && this.stompClient.connected) {
+      try {
+        this.stompClient.send(
+          `/app/conversations/${conversationId}/send`,
+          {},
+          JSON.stringify(message)
+        );
+      } catch (error) {
+        console.error('Failed to send message:', error);
+      }
+    } else {
+      console.warn('Cannot send message - WebSocket not connected');
     }
   }
 
   sendTypingIndicator(conversationId, typing) {
-    if (this.stompClient && this.connected) {
-      this.stompClient.send(
-        `/app/conversations/${conversationId}/typing`,
-        {},
-        JSON.stringify({ typing })
-      );
+    if (this.stompClient && this.connected && this.stompClient.connected) {
+      try {
+        this.stompClient.send(
+          `/app/conversations/${conversationId}/typing`,
+          {},
+          JSON.stringify({ typing })
+        );
+      } catch (error) {
+        console.error('Failed to send typing indicator:', error);
+      }
+    } else {
+      console.warn('Cannot send typing indicator - WebSocket not connected');
     }
   }
 

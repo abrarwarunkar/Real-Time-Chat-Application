@@ -35,6 +35,10 @@ public class RedisConfig {
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);
 
+        // Performance optimizations
+        template.setEnableTransactionSupport(false); // Disable transactions for better performance
+        template.afterPropertiesSet();
+
         return template;
     }
 

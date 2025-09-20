@@ -1,0 +1,569 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Registration with Valid Input",
+    "description": "Verify that a user can successfully register using valid credentials and receives valid JWT and refresh tokens.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send a registration request with valid username, email, and password."
+      },
+      {
+        "type": "assertion",
+        "description": "Check the response status is 201 Created."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the response includes a valid JWT access token and a refresh token."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm user data is stored in the PostgreSQL database with encrypted password."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Registration with Duplicate Email",
+    "description": "Verify that registration attempt fails when an email is already registered.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send a registration request with an email that already exists."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the response status is 400 Bad Request or 409 Conflict."
+      },
+      {
+        "type": "assertion",
+        "description": "Check the error message indicates duplicate email registration is not allowed."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "User Login with Correct Credentials",
+    "description": "Verify that a user can log in successfully using correct credentials and obtains valid JWT access and refresh tokens.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send a login request with valid username/email and password."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the response status is 200 OK."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the response contains a valid JWT access token and refresh token."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "User Login with Incorrect Credentials",
+    "description": "Verify that login fails when invalid credentials are provided.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send a login request with incorrect username/email or password."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure the response status is 401 Unauthorized."
+      },
+      {
+        "type": "assertion",
+        "description": "Validate error message indicates invalid credentials."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Refresh JWT Token with Valid Refresh Token",
+    "description": "Verify that a valid refresh token allows obtaining a new access token.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send token refresh request with a valid refresh token."
+      },
+      {
+        "type": "assertion",
+        "description": "Check response status is 200 OK."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a new valid JWT access token is returned."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Refresh JWT Token with Expired or Invalid Refresh Token",
+    "description": "Verify that using an expired or invalid refresh token fails to issue new access tokens.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send token refresh request with an expired or malformed refresh token."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm response status is 401 Unauthorized or 400 Bad Request."
+      },
+      {
+        "type": "assertion",
+        "description": "Check error message indicates invalid or expired refresh token."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Establish WebSocket Connection with Valid JWT Token",
+    "description": "Verify that a WebSocket connection (STOMP over SockJS) is successfully established when authenticated with a valid JWT token.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to connect to WebSocket endpoint supplying a valid JWT token."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm WebSocket connection is established."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "WebSocket Connection with Invalid JWT Token",
+    "description": "Verify connection is refused or disconnected if JWT token is missing, expired, or invalid during WebSocket handshake.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to connect to WebSocket endpoint with invalid or missing JWT token."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure connection is rejected or closed immediately."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Real-time 1:1 Messaging Functionality",
+    "description": "Verify users can send and receive messages in real-time via WebSocket in a one-on-one conversation, with message status updates (sent, delivered, read).",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Establish WebSocket connections for two users involved in a 1:1 chat."
+      },
+      {
+        "type": "action",
+        "description": "User A sends a message to User B through WebSocket."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify User B receives the message instantly."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm message status updates show 'sent' for User A and change to 'delivered' once received by User B."
+      },
+      {
+        "type": "action",
+        "description": "User B reads the message."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that User A sees the message status updated to 'read' in real time."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Real-time Group Messaging",
+    "description": "Verify real-time messaging and messaging status work correctly in a group chat including multiple participants.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create a group chat and add multiple users."
+      },
+      {
+        "type": "action",
+        "description": "Establish WebSocket connections for all participants."
+      },
+      {
+        "type": "action",
+        "description": "One participant sends a message to the group."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all other group members receive the message in real-time."
+      },
+      {
+        "type": "assertion",
+        "description": "Check message status updates (sent, delivered, read) are reflected properly for each participant."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Group Member Management via API",
+    "description": "Verify group chat APIs allow adding and removing members and role assignments function correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create a new group chat via API."
+      },
+      {
+        "type": "action",
+        "description": "Add multiple members to the group via API calls."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm members are reflected in the group conversation."
+      },
+      {
+        "type": "action",
+        "description": "Change roles/permissions of group members via API."
+      },
+      {
+        "type": "assertion",
+        "description": "Validate roles are updated according to request."
+      },
+      {
+        "type": "action",
+        "description": "Remove a member from the group using the API."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure member removal is effective and conversation updated."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Presence Tracking - Online/Offline Status",
+    "description": "Verify that presence indicators correctly display online and offline status of users in real-time using Redis pub/sub.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate multiple users logging in and out."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all related clients receive real-time presence updates reflecting online and offline statuses."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Presence Tracking - Typing Indicator",
+    "description": "Verify typing indicator appears in real-time to chat participants when a user is typing and disappears afterwards.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User A starts typing in a chat."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify User B sees the typing indicator immediately."
+      },
+      {
+        "type": "action",
+        "description": "User A stops typing or sends the message."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the typing indicator disappears for User B."
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Offline Message Queuing and Delivery",
+    "description": "Verify that messages sent while a user is offline are queued and delivered once the user reconnects.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User B disconnects or goes offline."
+      },
+      {
+        "type": "action",
+        "description": "User A sends multiple messages to User B."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm messages are stored in queue and marked for offline delivery."
+      },
+      {
+        "type": "action",
+        "description": "User B reconnects and establishes a WebSocket connection."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify queued messages are delivered immediately without loss or duplication."
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Secure Media File Upload with Validation",
+    "description": "Verify users can upload media files within allowed types and size limits; invalid files are rejected with proper errors.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to upload a file with an allowed type and size."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify file is accepted and stored securely in MinIO."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm a secure URL is returned for display in chat."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upload a file with disallowed file type."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify server rejects the file and returns a 400 Bad Request with validation error."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upload a file exceeding maximum size limit."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify server rejects the file and returns a 413 Payload Too Large or appropriate error."
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Rate Limiting Enforcement",
+    "description": "Verify that API rate limiting prevents abuse by throttling excessive requests, returning proper status codes.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send multiple API requests exceeding configured rate limits in a short time frame."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that requests beyond the threshold are rejected with HTTP 429 Too Many Requests."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify normal requests under the limit succeed."
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "API Authentication and Authorization Enforcement",
+    "description": "Verify endpoints enforce authentication and authorization, returning 401 or 403 for unauthorized or unauthenticated requests.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Send requests to protected APIs without JWT token."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 401 Unauthorized."
+      },
+      {
+        "type": "action",
+        "description": "Send requests to APIs with insufficient permissions (e.g., non-admin trying to manage group members)."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify response status is 403 Forbidden."
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Database Schema Migrations with Flyway",
+    "description": "Verify that Flyway database migrations run successfully and maintain schema integrity.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Deploy database migration scripts to a fresh PostgreSQL instance."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm all migrations execute without errors."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify database schema matches expected design after migration."
+      },
+      {
+        "type": "action",
+        "description": "Apply incremental migrations to an existing database."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure existing data remains consistent and no data loss occurs."
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Horizontal Scaling Impact on Messaging and Presence",
+    "description": "Verify that deploying multiple instances of the application with Redis pub/sub and Kafka does not disrupt message delivery or presence tracking.",
+    "category": "integration",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Deploy multiple instances of the chat application configured with Redis and Kafka."
+      },
+      {
+        "type": "action",
+        "description": "Simulate multiple users sending messages and changing presence status."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify real-time message delivery remains consistent across instances."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm accurate and timely presence updates are received by all clients."
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Health Check and Monitoring Endpoints",
+    "description": "Verify the availability and correctness of application health, metrics, and actuator endpoints for monitoring.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access the health check endpoint."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm response status is 200 OK and system health is reported."
+      },
+      {
+        "type": "action",
+        "description": "Access metrics endpoints exposed by Prometheus integration."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify metrics data is available and contains relevant performance data."
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "File Upload Security - Input Validation and Access Control",
+    "description": "Verify that uploaded files are validated for proper MIME types, sizes and stored securely, URLs are protected to prevent unauthorized access.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to upload disallowed file types or files containing malicious content."
+      },
+      {
+        "type": "assertion",
+        "description": "Check the application rejects such files with appropriate error messages."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access uploaded files URLs without authentication."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that unauthorized access is denied."
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "UI Responsiveness and Cross-Browser Compatibility",
+    "description": "Verify that the chat interface displays and functions consistently across multiple devices and modern browsers with responsiveness.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open chat UI on desktop, tablet, and mobile screen sizes."
+      },
+      {
+        "type": "assertion",
+        "description": "Validate message bubbles, typing indicators, presence icons, media attachments, and group member modals render correctly."
+      },
+      {
+        "type": "assertion",
+        "description": "Test UI functionality including sending messages, uploading files, and managing groups on Chrome, Firefox, Safari, and Edge browsers."
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Graceful Shutdown and Recovery",
+    "description": "Verify that the application performs graceful shutdown and recovers without data loss or connection issues.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Trigger application shutdown while active WebSocket connections and ongoing messaging occur."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm WebSocket clients are notified and connections are closed gracefully."
+      },
+      {
+        "type": "action",
+        "description": "Restart the application."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all services initialize correctly and queued offline messages remain intact."
+      }
+    ]
+  }
+]

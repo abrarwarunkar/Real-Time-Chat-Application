@@ -1,0 +1,98 @@
+{
+  "tech_stack": [
+    "Java",
+    "Spring Boot",
+    "PostgreSQL",
+    "Redis",
+    "Kafka",
+    "WebSocket",
+    "JWT",
+    "React",
+    "Vite",
+    "Tailwind CSS",
+    "Axios",
+    "MinIO"
+  ],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "User registration, login, and JWT-based authentication with refresh tokens",
+      "files": [
+        "src/main/java/com/example/chat/security/JwtAuthenticationFilter.java",
+        "src/main/java/com/example/chat/security/JwtUtil.java",
+        "src/main/java/com/example/chat/controller/AuthController.java",
+        "src/main/java/com/example/chat/service/AuthService.java",
+        "frontend/src/hooks/useAuth.jsx",
+        "frontend/src/components/Auth.jsx"
+      ]
+    },
+    {
+      "name": "Real-time Messaging",
+      "description": "WebSocket-based real-time messaging with message status tracking",
+      "files": [
+        "src/main/java/com/example/chat/websocket/WebSocketConfig.java",
+        "src/main/java/com/example/chat/websocket/WebSocketEventListener.java",
+        "src/main/java/com/example/chat/service/MessageService.java",
+        "frontend/src/services/websocket.js",
+        "frontend/src/hooks/useChat.jsx"
+      ]
+    },
+    {
+      "name": "Group Chat System",
+      "description": "Create and manage group conversations with member management",
+      "files": [
+        "src/main/java/com/example/chat/model/Conversation.java",
+        "src/main/java/com/example/chat/model/ConversationMember.java",
+        "src/main/java/com/example/chat/service/ConversationService.java",
+        "frontend/src/components/GroupCreationModal.jsx",
+        "frontend/src/components/GroupMemberModal.jsx"
+      ]
+    },
+    {
+      "name": "File Upload System",
+      "description": "Secure file upload with MinIO storage and type validation",
+      "files": [
+        "src/main/java/com/example/chat/service/FileService.java",
+        "src/main/java/com/example/chat/controller/FileController.java",
+        "frontend/src/services/api.js"
+      ]
+    },
+    {
+      "name": "User Management",
+      "description": "User search, presence tracking, and profile management",
+      "files": [
+        "src/main/java/com/example/chat/model/User.java",
+        "src/main/java/com/example/chat/service/UserService.java",
+        "src/main/java/com/example/chat/service/PresenceService.java",
+        "frontend/src/services/api.js"
+      ]
+    },
+    {
+      "name": "WhatsApp-like UI",
+      "description": "Modern chat interface with message bubbles and responsive design",
+      "files": [
+        "frontend/src/components/Chat.jsx",
+        "frontend/src/components/MessageList.jsx",
+        "frontend/src/components/MessageInput.jsx",
+        "frontend/src/components/ConversationList.jsx",
+        "frontend/src/index.css"
+      ]
+    },
+    {
+      "name": "Database Layer",
+      "description": "PostgreSQL with JPA/Hibernate and Flyway migrations",
+      "files": [
+        "src/main/resources/db/migration/",
+        "src/main/java/com/example/chat/repository/"
+      ]
+    },
+    {
+      "name": "Security & Configuration",
+      "description": "Spring Security, CORS, rate limiting, and application configuration",
+      "files": [
+        "src/main/java/com/example/chat/config/",
+        "src/main/resources/application.yml"
+      ]
+    }
+  ]
+}

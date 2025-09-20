@@ -112,6 +112,29 @@ app:
 logging:
   level:
     com.example.chat: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: WARN
+    org.springframework.web.socket: WARN
+    org.springframework.messaging: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Performance tuning
+server:
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 20000
+    keep-alive-timeout: 20000
+
+spring:
+  jpa:
+    hibernate:
+      jdbc:
+        batch_size: 25
+    properties:
+      hibernate:
+        order_inserts: true
+        order_updates: true
+        jdbc:
+          batch_versioned_data: true

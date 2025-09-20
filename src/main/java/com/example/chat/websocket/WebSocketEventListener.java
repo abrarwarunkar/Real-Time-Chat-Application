@@ -31,33 +31,61 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        Principal user = headerAccessor.getUser();
-        
-        if (user != null) {
-            logger.info("User connected: {}", user.getName());
-            
-            // Set user online and deliver offline messages
-            User userEntity = userService.findByUsername(user.getName()).orElse(null);
-            if (userEntity != null) {
-                presenceService.setUserOnline(userEntity.getId(), userEntity.getUsername());
+        try {
+            StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+            Principal user = headerAccessor.getUser();
+            String sessionId = headerAccessor.getSessionId();
+
+            if (user != null) {
+                logger.info("WebSocket connection established - User: {}, Session: {}", user.getName(), sessionId);
+
+                // Set user online and deliver offline messages
+                try {
+                    User userEntity = userService.findByUsername(user.getName()).orElse(null);
+                    if (userEntity != null) {
+                        presenceService.setUserOnline(userEntity.getId(), userEntity.getUsername());
+                        logger.debug("User {} set online successfully", user.getName());
+                    } else {
+                        logger.warn("User entity not found for username: {}", user.getName());
+                    }
+                } catch (Exception e) {
+                    logger.error("Error setting user online: {}", user.getName(), e);
+                }
+            } else {
+                logger.warn("WebSocket connection without authenticated user - Session: {}", sessionId);
             }
+        } catch (Exception e) {
+            logger.error("Error handling WebSocket connect event", e);
         }
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        Principal user = headerAccessor.getUser();
-        
-        if (user != null) {
-            logger.info("User disconnected: {}", user.getName());
-            
-            // Set user offline
-            User userEntity = userService.findByUsername(user.getName()).orElse(null);
-            if (userEntity != null) {
-                presenceService.setUserOffline(userEntity.getId(), userEntity.getUsername());
+        try {
+            StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+            Principal user = headerAccessor.getUser();
+            String sessionId = headerAccessor.getSessionId();
+
+            if (user != null) {
+                logger.info("WebSocket disconnection - User: {}, Session: {}", user.getName(), sessionId);
+
+                // Set user offline
+                try {
+                    User userEntity = userService.findByUsername(user.getName()).orElse(null);
+                    if (userEntity != null) {
+                        presenceService.setUserOffline(userEntity.getId(), userEntity.getUsername());
+                        logger.debug("User {} set offline successfully", user.getName());
+                    } else {
+                        logger.warn("User entity not found for username: {}", user.getName());
+                    }
+                } catch (Exception e) {
+                    logger.error("Error setting user offline: {}", user.getName(), e);
+                }
+            } else {
+                logger.info("Anonymous WebSocket disconnection - Session: {}", sessionId);
             }
+        } catch (Exception e) {
+            logger.error("Error handling WebSocket disconnect event", e);
         }
     }
 }

@@ -83,6 +83,7 @@ public class PresenceService {
         }
     }
 
+    @org.springframework.cache.annotation.Cacheable(value = "onlineUsers", key = "#userId")
     public boolean isUserOnline(Long userId) {
         try {
             return redisTemplate.opsForSet().isMember(ONLINE_USERS_KEY, userId.toString());

@@ -35,6 +35,10 @@ export const useChat = () => {
       setConversations(response.data);
     } catch (error) {
       console.error('Failed to load conversations:', error);
+      // 403 errors are handled by the API interceptor
+      if (error.response?.status !== 403) {
+        // For other errors, you might want to show a message or retry
+      }
     } finally {
       setLoading(false);
     }
@@ -66,16 +70,16 @@ export const useChat = () => {
           await websocketService.connect(token);
         }
       }
-      
+
       const response = await conversationAPI.getMessages(conversation.id);
       setMessages(response.data.content.reverse());
-      
+
       // Mark conversation as read
       if (response.data.content.length > 0) {
         const lastMessage = response.data.content[response.data.content.length - 1];
         markAsRead(lastMessage.id);
       }
-      
+
       // Subscribe to conversation events
       websocketService.subscribeToConversation(conversation.id, {
         messages: handleNewMessage,
@@ -84,6 +88,10 @@ export const useChat = () => {
       });
     } catch (error) {
       console.error('Failed to load messages:', error);
+      // 403 errors are handled by the API interceptor
+      if (error.response?.status !== 403) {
+        // For other errors, you might want to show a message
+      }
     }
   };
 
@@ -116,6 +124,29 @@ export const useChat = () => {
       return newConversation;
     } catch (error) {
       console.error('Failed to create conversation:', error);
+      throw error;
+    }
+  };
+
+  const createGroupConversation = async (name, memberIds) => {
+    try {
+      const response = await conversationAPI.createGroup(name, memberIds);
+      const newConversation = response.data;
+      setConversations(prev => [newConversation, ...prev]);
+      return newConversation;
+    } catch (error) {
+      console.error('Failed to create group:', error);
+      throw error;
+    }
+  };
+
+  const addMemberToGroup = async (conversationId, userId) => {
+    try {
+      await conversationAPI.addMember(conversationId, userId);
+      // Refresh conversations to get updated member list
+      await loadConversations();
+    } catch (error) {
+      console.error('Failed to add member:', error);
       throw error;
     }
   };
@@ -206,6 +237,8 @@ export const useChat = () => {
     sendMessage,
     sendTypingIndicator,
     createDirectConversation,
+    createGroupConversation,
+    addMemberToGroup,
     markAsRead,
     loadConversations,
     clearChat,

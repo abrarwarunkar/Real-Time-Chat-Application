@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { userAPI } from '../services/api';
 import { useAuth } from '../hooks/useAuth.jsx';
 
-const ConversationList = ({ conversations, currentConversation, onSelectConversation, onCreateConversation }) => {
+const ConversationList = ({ conversations, currentConversation, onSelectConversation, onCreateConversation, onCreateGroup }) => {
   const { user, logout } = useAuth();
   const [showNewChat, setShowNewChat] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,22 +50,25 @@ const ConversationList = ({ conversations, currentConversation, onSelectConversa
   };
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-80 flex flex-col" style={{ backgroundColor: 'var(--sidebar-bg)', color: 'white' }}>
       {/* Profile Header */}
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+      <div className="p-4 border-b" style={{ backgroundColor: 'var(--header-bg)' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+            <div className="avatar">
               {user?.username?.[0]?.toUpperCase() || 'U'}
             </div>
             <div>
-              <div className="font-medium text-gray-900">{user?.username}</div>
-              <div className="text-sm text-gray-500">{user?.email}</div>
+              <div className="font-medium">{user?.username}</div>
+              <div className="text-sm opacity-75 flex items-center">
+                <div className="status-online mr-2"></div>
+                Online
+              </div>
             </div>
           </div>
           <button
             onClick={logout}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-full"
+            className="btn-icon text-white"
             title="Logout"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,17 +78,29 @@ const ConversationList = ({ conversations, currentConversation, onSelectConversa
         </div>
       </div>
       
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 bg-whatsapp-dark">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-semibold">Chats</h1>
-          <button
-            onClick={() => setShowNewChat(!showNewChat)}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+          <h1 className="text-xl font-semibold text-white">Chats</h1>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowNewChat(!showNewChat)}
+              className="p-2 text-white hover:bg-whatsapp-primary rounded-full transition-colors"
+              title="New Chat"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </button>
+            <button
+              onClick={onCreateGroup}
+              className="p-2 text-white hover:bg-whatsapp-primary rounded-full transition-colors"
+              title="New Group"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {showNewChat && (
@@ -93,24 +108,24 @@ const ConversationList = ({ conversations, currentConversation, onSelectConversa
             <input
               type="text"
               placeholder="Search users..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-whatsapp-primary"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
             />
-            {searching && <div className="text-sm text-gray-500 mt-2">Searching...</div>}
+            {searching && <div className="text-sm text-gray-300 mt-2">Searching...</div>}
             {searchResults.length > 0 && (
-              <div className="mt-2 max-h-40 overflow-y-auto">
+              <div className="mt-2 max-h-40 overflow-y-auto bg-white rounded-lg">
                 {searchResults.map(user => (
                   <div
                     key={user.id}
                     onClick={() => handleCreateChat(user)}
-                    className="flex items-center p-2 hover:bg-gray-100 cursor-pointer rounded"
+                    className="flex items-center p-3 hover:bg-gray-50 cursor-pointer"
                   >
-                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+                    <div className="avatar small bg-whatsapp-primary mr-3">
                       {user.username[0].toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-medium">{user.username}</div>
+                      <div className="font-medium text-gray-900">{user.username}</div>
                       <div className="text-sm text-gray-500">{user.email}</div>
                     </div>
                     {user.online && (
@@ -124,40 +139,54 @@ const ConversationList = ({ conversations, currentConversation, onSelectConversa
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {conversations.map(conversation => (
           <div
             key={conversation.id}
             onClick={() => onSelectConversation(conversation)}
-            className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
-              currentConversation?.id === conversation.id ? 'bg-blue-50' : ''
-            }`}
+            className={`sidebar-item ${currentConversation?.id === conversation.id ? 'active' : ''}`}
           >
-            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+            <div className="avatar mr-3 flex-shrink-0 relative">
               {conversation.name ? conversation.name[0].toUpperCase() : 'C'}
+              {conversation.type === 'GROUP' && (
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border-2 border-gray-700">
+                  <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-baseline">
-                <h3 className="font-medium truncate">{conversation.name || 'Conversation'}</h3>
+              <div className="flex justify-between items-baseline mb-1">
+                <div className="flex items-center space-x-2">
+                  <h3 className="font-medium text-white truncate">{conversation.name || 'Conversation'}</h3>
+                  {conversation.type === 'GROUP' && (
+                    <span className="text-xs text-gray-400 bg-gray-700 px-2 py-1 rounded-full">
+                      Group
+                    </span>
+                  )}
+                </div>
                 {conversation.lastMessage && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {formatTime(conversation.lastMessage.createdAt)}
                   </span>
                 )}
               </div>
-              {conversation.lastMessage && (
-                <p className="text-sm text-gray-600 truncate">
-                  {conversation.lastMessage.content}
-                </p>
-              )}
-              {conversation.unreadCount > 0 && (
-                <div className="flex justify-between items-center mt-1">
-                  <div></div>
-                  <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1">
+              <div className="flex items-center justify-between">
+                {conversation.lastMessage && (
+                  <p className="text-sm text-gray-400 truncate flex-1">
+                    {conversation.lastMessage.sender?.username && conversation.type === 'GROUP'
+                      ? `${conversation.lastMessage.sender.username}: ${conversation.lastMessage.content}`
+                      : conversation.lastMessage.content
+                    }
+                  </p>
+                )}
+                {conversation.unreadCount > 0 && (
+                  <span className="bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center ml-2 font-medium">
                     {conversation.unreadCount}
                   </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         ))}

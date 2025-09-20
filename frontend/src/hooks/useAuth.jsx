@@ -1,8 +1,7 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { authAPI, userAPI } from '../services/api';
 import websocketService from '../services/websocket';
-
-const AuthContext = createContext();
+import { AuthContext } from '../contexts/AuthContext';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

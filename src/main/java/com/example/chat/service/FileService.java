@@ -3,6 +3,8 @@ package com.example.chat.service;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.MakeBucketArgs;
+import io.minio.BucketExistsArgs;
 import io.minio.http.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +24,14 @@ import java.util.concurrent.TimeUnit;
 public class FileService {
 
     private static final Logger logger = LoggerFactory.getLogger(FileService.class);
-    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".docx");
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".pdf", ".txt", ".doc", ".docx");
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+        "image/jpeg", "image/png", "image/gif", "image/jpg",
+        "application/pdf", "text/plain",
+        "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
 
-    @Autowired(required = false)
-    private EventPublisher eventPublisher;
 
     @Value("${app.minio.endpoint}")
     private String minioEndpoint;
@@ -43,8 +48,6 @@ public class FileService {
     @Value("${app.file.upload.max-size}")
     private String maxSize;
 
-    @Value("${app.file.upload.allowed-types}")
-    private String allowedTypes;
 
     private MinioClient getMinioClient() {
         return MinioClient.builder()
@@ -55,12 +58,19 @@ public class FileService {
 
     public String uploadFile(MultipartFile file, Long userId) throws Exception {
         validateFile(file);
-        
+
         String fileName = generateFileName(file.getOriginalFilename());
         String objectName = "uploads/" + userId + "/" + fileName;
+
         String fileHash = calculateFileHash(file);
 
         MinioClient minioClient = getMinioClient();
+
+        // Ensure bucket exists
+        boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+        if (!bucketExists) {
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+        }
 
         try (InputStream inputStream = file.getInputStream()) {
             minioClient.putObject(
@@ -73,21 +83,21 @@ public class FileService {
             );
         }
 
-        logger.info("File uploaded: {} by user: {}", fileName, userId);
-        
-        // Publish file upload event
-        eventPublisher.publishMessageEvent(new com.example.chat.dto.events.MessageEvent(
-            com.example.chat.dto.events.MessageEvent.Type.MESSAGE_SENT,
-            null, null, userId, null, "File uploaded: " + fileName,
-            com.example.chat.model.Message.Type.FILE, com.example.chat.model.Message.Status.SENT
-        ));
+        logger.info("File uploaded successfully: {} by user: {}", fileName, userId);
 
         return getFileUrl(objectName);
     }
 
     public String getFileUrl(String objectName) throws Exception {
         MinioClient minioClient = getMinioClient();
-        
+
+        // Ensure bucket exists
+        boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+        if (!bucketExists) {
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            logger.info("Created MinIO bucket: {}", bucketName);
+        }
+
         return minioClient.getPresignedObjectUrl(
             GetPresignedObjectUrlArgs.builder()
                 .method(Method.GET)
@@ -108,7 +118,7 @@ public class FileService {
         }
 
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) {
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
             throw new IllegalArgumentException("Invalid filename");
         }
 
@@ -118,7 +128,7 @@ public class FileService {
         }
 
         String contentType = file.getContentType();
-        if (contentType == null || !allowedTypes.contains(contentType)) {
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
             throw new IllegalArgumentException("Invalid content type: " + contentType);
         }
 
@@ -142,7 +152,14 @@ public class FileService {
 
     private String calculateFileHash(MultipartFile file) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(file.getBytes());
+        try (InputStream inputStream = file.getInputStream()) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
+        }
+        byte[] hash = digest.digest();
         StringBuilder hexString = new StringBuilder();
         for (byte b : hash) {
             String hex = Integer.toHexString(0xff & b);
